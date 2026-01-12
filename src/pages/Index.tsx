@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import Icon from '@/components/ui/icon';
 import JobMap from '@/components/JobMap';
+import { calculateDistance, formatDistance } from '@/lib/distance';
 
 const Index = () => {
   const [selectedJob, setSelectedJob] = useState<number | null>(null);
@@ -137,16 +138,38 @@ const Index = () => {
     { id: 3, text: 'Приглашение на собеседование', time: '2 часа назад', type: 'invite' },
   ];
 
-  const filteredJobs = jobs.filter(job => {
-    const salary = parseInt(job.salary.split('-')[0].replace(/\D/g, ''));
-    const dist = parseFloat(job.distance);
-    
-    if (jobType !== 'all' && job.type !== jobType) return false;
-    if (salary < salaryRange[0] || salary > salaryRange[1]) return false;
-    if (dist > distance[0]) return false;
-    
-    return true;
-  });
+  const jobsWithDistance = useMemo(() => {
+    return jobs.map(job => {
+      let calculatedDistance = parseFloat(job.distance);
+      
+      if (userLocation) {
+        calculatedDistance = calculateDistance(
+          userLocation[0],
+          userLocation[1],
+          job.lat,
+          job.lng
+        );
+      }
+      
+      return {
+        ...job,
+        calculatedDistance,
+        distance: formatDistance(calculatedDistance),
+      };
+    });
+  }, [jobs, userLocation]);
+
+  const filteredJobs = useMemo(() => {
+    return jobsWithDistance.filter(job => {
+      const salary = parseInt(job.salary.split('-')[0].replace(/\D/g, ''));
+      
+      if (jobType !== 'all' && job.type !== jobType) return false;
+      if (salary < salaryRange[0] || salary > salaryRange[1]) return false;
+      if (job.calculatedDistance > distance[0]) return false;
+      
+      return true;
+    }).sort((a, b) => a.calculatedDistance - b.calculatedDistance);
+  }, [jobsWithDistance, jobType, salaryRange, distance]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
@@ -157,7 +180,16 @@ const Index = () => {
               <h1 className="text-4xl font-heading font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
                 Подработка
               </h1>
-              <p className="text-muted-foreground mt-1">Найди работу рядом с тобой</p>
+              <p className="text-muted-foreground mt-1">
+                {userLocation ? (
+                  <span className="flex items-center gap-1">
+                    <Icon name="MapPin" size={14} className="text-blue-600" />
+                    Показываем расстояние от вас
+                  </span>
+                ) : (
+                  'Найди работу рядом с тобой'
+                )}
+              </p>
             </div>
             <div className="flex gap-2">
               <Button variant="outline" size="icon" className="relative">
