@@ -8,6 +8,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTr
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import Icon from '@/components/ui/icon';
+import JobMap from '@/components/JobMap';
 
 const Index = () => {
   const [selectedJob, setSelectedJob] = useState<number | null>(null);
@@ -27,6 +28,8 @@ const Index = () => {
       time: 'Полный день',
       badges: ['Срочно', 'Высокая оплата'],
       description: 'Требуется курьер для доставки заказов. Свободный график.',
+      lat: 55.7558,
+      lng: 37.6173,
     },
     {
       id: 2,
@@ -38,6 +41,8 @@ const Index = () => {
       time: '4 часа',
       badges: ['Вечер'],
       description: 'Раздача листовок в торговом центре.',
+      lat: 55.7658,
+      lng: 37.6273,
     },
     {
       id: 3,
@@ -49,6 +54,8 @@ const Index = () => {
       time: 'Гибкий график',
       badges: ['Своя машина'],
       description: 'Поездки по городу. Процент от поездок.',
+      lat: 55.7508,
+      lng: 37.6123,
     },
     {
       id: 4,
@@ -60,6 +67,8 @@ const Index = () => {
       time: 'Утро',
       badges: ['Физическая работа'],
       description: 'Разгрузка, сортировка товара.',
+      lat: 55.7608,
+      lng: 37.6323,
     },
     {
       id: 5,
@@ -71,6 +80,8 @@ const Index = () => {
       time: 'Вечер',
       badges: ['Обучение'],
       description: 'Работа в кофейне. Обучим всему необходимому.',
+      lat: 55.7528,
+      lng: 37.6083,
     },
     {
       id: 6,
@@ -82,6 +93,8 @@ const Index = () => {
       time: 'День',
       badges: ['Опыт не важен'],
       description: 'Выкладка товара в магазинах.',
+      lat: 55.7708,
+      lng: 37.6423,
     },
   ];
 
@@ -318,16 +331,14 @@ const Index = () => {
           <TabsContent value="map" className="animate-fade-in">
             <Card className="overflow-hidden">
               <CardContent className="p-0">
-                <div className="relative h-[600px] bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
-                  <div className="text-center space-y-4">
-                    <Icon name="Map" size={64} className="mx-auto text-primary" />
-                    <p className="text-xl font-medium text-muted-foreground">
-                      Интерактивная карта с вакансиями
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Здесь будут отображаться метки с доступными подработками на карте
-                    </p>
-                  </div>
+                <div className="relative h-[600px]">
+                  <JobMap 
+                    jobs={filteredJobs} 
+                    onJobClick={(jobId) => {
+                      setSelectedJob(jobId);
+                      setActiveTab('jobs');
+                    }}
+                  />
                 </div>
               </CardContent>
             </Card>
