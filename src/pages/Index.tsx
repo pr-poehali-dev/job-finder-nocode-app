@@ -1,11 +1,387 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
+import Icon from '@/components/ui/icon';
 
 const Index = () => {
+  const [selectedJob, setSelectedJob] = useState<number | null>(null);
+  const [salaryRange, setSalaryRange] = useState([0, 100000]);
+  const [distance, setDistance] = useState([5]);
+  const [jobType, setJobType] = useState('all');
+  const [activeTab, setActiveTab] = useState('jobs');
+
+  const jobs = [
+    {
+      id: 1,
+      title: 'Курьер',
+      company: 'Доставка 24/7',
+      salary: '2000-3000 ₽/день',
+      distance: '1.2 км',
+      type: 'delivery',
+      time: 'Полный день',
+      badges: ['Срочно', 'Высокая оплата'],
+      description: 'Требуется курьер для доставки заказов. Свободный график.',
+    },
+    {
+      id: 2,
+      title: 'Промоутер',
+      company: 'Event Agency',
+      salary: '1500 ₽/день',
+      distance: '2.5 км',
+      type: 'promo',
+      time: '4 часа',
+      badges: ['Вечер'],
+      description: 'Раздача листовок в торговом центре.',
+    },
+    {
+      id: 3,
+      title: 'Водитель',
+      company: 'TaxiGo',
+      salary: '3000-5000 ₽/день',
+      distance: '0.8 км',
+      type: 'driving',
+      time: 'Гибкий график',
+      badges: ['Своя машина'],
+      description: 'Поездки по городу. Процент от поездок.',
+    },
+    {
+      id: 4,
+      title: 'Помощник на складе',
+      company: 'Склад №5',
+      salary: '2500 ₽/день',
+      distance: '3.1 км',
+      type: 'warehouse',
+      time: 'Утро',
+      badges: ['Физическая работа'],
+      description: 'Разгрузка, сортировка товара.',
+    },
+    {
+      id: 5,
+      title: 'Бариста',
+      company: 'Coffee Story',
+      salary: '1800 ₽/смена',
+      distance: '1.5 км',
+      type: 'service',
+      time: 'Вечер',
+      badges: ['Обучение'],
+      description: 'Работа в кофейне. Обучим всему необходимому.',
+    },
+    {
+      id: 6,
+      title: 'Мерчендайзер',
+      company: 'Retail Pro',
+      salary: '2000 ₽/день',
+      distance: '4.2 км',
+      type: 'retail',
+      time: 'День',
+      badges: ['Опыт не важен'],
+      description: 'Выкладка товара в магазинах.',
+    },
+  ];
+
+  const messages = [
+    { id: 1, from: 'Доставка 24/7', text: 'Здравствуйте! Готовы начать завтра?', time: '10:30', unread: true },
+    { id: 2, from: 'Event Agency', text: 'Спасибо за отклик!', time: '09:15', unread: false },
+    { id: 3, from: 'TaxiGo', text: 'Ждем вас на собеседование', time: 'Вчера', unread: true },
+  ];
+
+  const notifications = [
+    { id: 1, text: 'Новая вакансия "Курьер" рядом с вами', time: '5 мин назад', type: 'new' },
+    { id: 2, text: 'Ваш отклик просмотрен', time: '1 час назад', type: 'view' },
+    { id: 3, text: 'Приглашение на собеседование', time: '2 часа назад', type: 'invite' },
+  ];
+
+  const filteredJobs = jobs.filter(job => {
+    const salary = parseInt(job.salary.split('-')[0].replace(/\D/g, ''));
+    const dist = parseFloat(job.distance);
+    
+    if (jobType !== 'all' && job.type !== jobType) return false;
+    if (salary < salaryRange[0] || salary > salaryRange[1]) return false;
+    if (dist > distance[0]) return false;
+    
+    return true;
+  });
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4 color-black text-black">Добро пожаловать!</h1>
-        <p className="text-xl text-gray-600">тут будет отображаться ваш проект</p>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+      <div className="container mx-auto px-4 py-6 max-w-7xl">
+        <header className="mb-8 animate-fade-in">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-4xl font-heading font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+                Подработка
+              </h1>
+              <p className="text-muted-foreground mt-1">Найди работу рядом с тобой</p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" size="icon" className="relative">
+                <Icon name="Bell" size={20} />
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-secondary text-white text-xs rounded-full flex items-center justify-center">
+                  3
+                </span>
+              </Button>
+              <Button variant="outline" size="icon">
+                <Icon name="User" size={20} />
+              </Button>
+            </div>
+          </div>
+
+          <div className="flex gap-2 mb-4">
+            <div className="flex-1 relative">
+              <Icon name="Search" size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input 
+                placeholder="Поиск работы..." 
+                className="pl-10 h-12 text-lg border-2 focus:border-primary"
+              />
+            </div>
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button size="lg" variant="outline" className="px-6">
+                  <Icon name="SlidersHorizontal" size={20} className="mr-2" />
+                  Фильтры
+                </Button>
+              </SheetTrigger>
+              <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+                <SheetHeader>
+                  <SheetTitle>Фильтры поиска</SheetTitle>
+                  <SheetDescription>Настройте параметры для поиска подработки</SheetDescription>
+                </SheetHeader>
+                
+                <div className="space-y-6 mt-6">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Тип работы</label>
+                    <Select value={jobType} onValueChange={setJobType}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Все типы</SelectItem>
+                        <SelectItem value="delivery">Доставка</SelectItem>
+                        <SelectItem value="promo">Промо</SelectItem>
+                        <SelectItem value="driving">Вождение</SelectItem>
+                        <SelectItem value="warehouse">Склад</SelectItem>
+                        <SelectItem value="service">Сервис</SelectItem>
+                        <SelectItem value="retail">Ритейл</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Зарплата: {salaryRange[0]} - {salaryRange[1]} ₽
+                    </label>
+                    <Slider
+                      min={0}
+                      max={10000}
+                      step={500}
+                      value={salaryRange}
+                      onValueChange={setSalaryRange}
+                      className="mt-2"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Расстояние: до {distance[0]} км
+                    </label>
+                    <Slider
+                      min={1}
+                      max={10}
+                      step={0.5}
+                      value={distance}
+                      onValueChange={setDistance}
+                      className="mt-2"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Время работы</label>
+                    <div className="flex flex-wrap gap-2">
+                      {['Утро', 'День', 'Вечер', 'Ночь', 'Гибкий'].map(time => (
+                        <Button key={time} variant="outline" size="sm">
+                          {time}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <Button className="w-full" size="lg">
+                    Применить фильтры
+                  </Button>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
+
+          <div className="flex gap-2 flex-wrap">
+            {['Курьер', 'Промоутер', 'Водитель', 'Склад'].map(tag => (
+              <Badge key={tag} variant="secondary" className="px-4 py-2 text-sm hover:bg-secondary/80 cursor-pointer">
+                {tag}
+              </Badge>
+            ))}
+          </div>
+        </header>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+          <TabsList className="grid w-full grid-cols-4 h-14">
+            <TabsTrigger value="jobs" className="flex items-center gap-2">
+              <Icon name="Briefcase" size={18} />
+              Вакансии
+            </TabsTrigger>
+            <TabsTrigger value="map" className="flex items-center gap-2">
+              <Icon name="Map" size={18} />
+              Карта
+            </TabsTrigger>
+            <TabsTrigger value="chat" className="flex items-center gap-2 relative">
+              <Icon name="MessageSquare" size={18} />
+              Чаты
+              <Badge variant="destructive" className="ml-1 px-1.5 py-0 text-xs">2</Badge>
+            </TabsTrigger>
+            <TabsTrigger value="notifications" className="flex items-center gap-2 relative">
+              <Icon name="Bell" size={18} />
+              Уведомления
+              <Badge variant="destructive" className="ml-1 px-1.5 py-0 text-xs">3</Badge>
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="jobs" className="space-y-4 animate-fade-in">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-muted-foreground">
+                Найдено {filteredJobs.length} {filteredJobs.length === 1 ? 'вакансия' : 'вакансий'}
+              </p>
+              <Select defaultValue="distance">
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="distance">По расстоянию</SelectItem>
+                  <SelectItem value="salary">По зарплате</SelectItem>
+                  <SelectItem value="date">По дате</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {filteredJobs.map((job, index) => (
+                <Card 
+                  key={job.id} 
+                  className="hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105 border-2 hover:border-primary animate-slide-up"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                  onClick={() => setSelectedJob(job.id)}
+                >
+                  <CardHeader>
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-xl">
+                        {job.title[0]}
+                      </div>
+                      <Badge variant="outline" className="text-xs">
+                        <Icon name="MapPin" size={12} className="mr-1" />
+                        {job.distance}
+                      </Badge>
+                    </div>
+                    <CardTitle className="text-xl font-heading">{job.title}</CardTitle>
+                    <CardDescription>{job.company}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 text-lg font-semibold text-primary">
+                        <Icon name="DollarSign" size={18} />
+                        {job.salary}
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Icon name="Clock" size={16} />
+                        {job.time}
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {job.badges.map(badge => (
+                          <Badge key={badge} className="bg-accent">
+                            {badge}
+                          </Badge>
+                        ))}
+                      </div>
+                      <Button className="w-full" size="lg">
+                        Откликнуться
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="map" className="animate-fade-in">
+            <Card className="overflow-hidden">
+              <CardContent className="p-0">
+                <div className="relative h-[600px] bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
+                  <div className="text-center space-y-4">
+                    <Icon name="Map" size={64} className="mx-auto text-primary" />
+                    <p className="text-xl font-medium text-muted-foreground">
+                      Интерактивная карта с вакансиями
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Здесь будут отображаться метки с доступными подработками на карте
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="chat" className="space-y-4 animate-fade-in">
+            {messages.map(message => (
+              <Card key={message.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold">
+                      {message.from[0]}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-1">
+                        <h3 className="font-semibold">{message.from}</h3>
+                        <span className="text-xs text-muted-foreground">{message.time}</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{message.text}</p>
+                    </div>
+                    {message.unread && (
+                      <div className="w-3 h-3 rounded-full bg-secondary"></div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </TabsContent>
+
+          <TabsContent value="notifications" className="space-y-4 animate-fade-in">
+            {notifications.map(notification => (
+              <Card key={notification.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-4">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      notification.type === 'new' ? 'bg-green-100 text-green-600' :
+                      notification.type === 'view' ? 'bg-blue-100 text-blue-600' :
+                      'bg-purple-100 text-purple-600'
+                    }`}>
+                      <Icon name={
+                        notification.type === 'new' ? 'Sparkles' :
+                        notification.type === 'view' ? 'Eye' : 'Mail'
+                      } size={20} />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium mb-1">{notification.text}</p>
+                      <span className="text-xs text-muted-foreground">{notification.time}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
