@@ -7,6 +7,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { toast } from 'sonner';
 import Icon from '@/components/ui/icon';
 import JobMap from '@/components/JobMap';
 import { calculateDistance, formatDistance } from '@/lib/distance';
@@ -20,6 +23,12 @@ const Index = () => {
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+  const [appliedJobs, setAppliedJobs] = useState<number[]>([]);
+  const [favoriteJobs, setFavoriteJobs] = useState<number[]>([]);
+  const [showApplicationDialog, setShowApplicationDialog] = useState(false);
+  const [applicationJobId, setApplicationJobId] = useState<number | null>(null);
+  const [applicationMessage, setApplicationMessage] = useState('');
+  const [showJobDetail, setShowJobDetail] = useState(false);
 
   useEffect(() => {
     if ('geolocation' in navigator) {
@@ -170,6 +179,41 @@ const Index = () => {
       return true;
     }).sort((a, b) => a.calculatedDistance - b.calculatedDistance);
   }, [jobsWithDistance, jobType, salaryRange, distance]);
+
+  const handleApplyJob = (jobId: number) => {
+    setApplicationJobId(jobId);
+    setShowApplicationDialog(true);
+  };
+
+  const submitApplication = () => {
+    if (applicationJobId) {
+      setAppliedJobs([...appliedJobs, applicationJobId]);
+      toast.success('Отклик отправлен!', {
+        description: 'Работодатель получит ваше сообщение в ближайшее время',
+      });
+      setShowApplicationDialog(false);
+      setApplicationMessage('');
+      setApplicationJobId(null);
+    }
+  };
+
+  const toggleFavorite = (jobId: number) => {
+    if (favoriteJobs.includes(jobId)) {
+      setFavoriteJobs(favoriteJobs.filter(id => id !== jobId));
+      toast.info('Удалено из избранного');
+    } else {
+      setFavoriteJobs([...favoriteJobs, jobId]);
+      toast.success('Добавлено в избранное');
+    }
+  };
+
+  const handleQuickMessage = (jobId: number, company: string) => {
+    toast.success('Сообщение отправлено', {
+      description: `Вы написали ${company}`,
+    });
+  };
+
+  const selectedJobData = filteredJobs.find(job => job.id === selectedJob);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
