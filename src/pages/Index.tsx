@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -16,6 +16,33 @@ const Index = () => {
   const [distance, setDistance] = useState([5]);
   const [jobType, setJobType] = useState('all');
   const [activeTab, setActiveTab] = useState('jobs');
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+
+  useEffect(() => {
+    if ('geolocation' in navigator) {
+      setIsLoadingLocation(true);
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation([position.coords.latitude, position.coords.longitude]);
+          setIsLoadingLocation(false);
+        },
+        (error) => {
+          console.error('Error getting location:', error);
+          setLocationError('Не удалось получить местоположение');
+          setIsLoadingLocation(false);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0,
+        }
+      );
+    } else {
+      setLocationError('Геолокация не поддерживается');
+    }
+  }, []);
 
   const jobs = [
     {
@@ -332,8 +359,27 @@ const Index = () => {
             <Card className="overflow-hidden">
               <CardContent className="p-0">
                 <div className="relative h-[600px]">
+                  {isLoadingLocation && (
+                    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] bg-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                      <span className="text-sm font-medium">Определяю ваше местоположение...</span>
+                    </div>
+                  )}
+                  {locationError && (
+                    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] bg-destructive text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2">
+                      <Icon name="AlertCircle" size={16} />
+                      <span className="text-sm font-medium">{locationError}</span>
+                    </div>
+                  )}
+                  {userLocation && (
+                    <div className="absolute top-4 left-4 z-[1000] bg-blue-600 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2">
+                      <Icon name="Navigation" size={16} />
+                      <span className="text-sm font-medium">Вы на карте</span>
+                    </div>
+                  )}
                   <JobMap 
                     jobs={filteredJobs} 
+                    userLocation={userLocation}
                     onJobClick={(jobId) => {
                       setSelectedJob(jobId);
                       setActiveTab('jobs');

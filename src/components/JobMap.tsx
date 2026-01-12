@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { useEffect, useState } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Badge } from '@/components/ui/badge';
@@ -30,6 +30,7 @@ interface Job {
 interface JobMapProps {
   jobs: Job[];
   onJobClick?: (jobId: number) => void;
+  userLocation?: [number, number] | null;
 }
 
 const createCustomIcon = (color: string) => {
@@ -57,6 +58,27 @@ const createCustomIcon = (color: string) => {
   });
 };
 
+const createUserIcon = () => {
+  return L.divIcon({
+    className: 'custom-marker',
+    html: `
+      <div style="
+        background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 4px solid white;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3), 0 4px 12px rgba(0,0,0,0.3);
+        animation: pulse 2s infinite;
+      ">
+      </div>
+    `,
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
+    popupAnchor: [0, -12],
+  });
+};
+
 const MapUpdater = ({ center }: { center: [number, number] }) => {
   const map = useMap();
   
@@ -67,8 +89,8 @@ const MapUpdater = ({ center }: { center: [number, number] }) => {
   return null;
 };
 
-const JobMap = ({ jobs, onJobClick }: JobMapProps) => {
-  const center: [number, number] = [55.7558, 37.6173];
+const JobMap = ({ jobs, onJobClick, userLocation }: JobMapProps) => {
+  const center: [number, number] = userLocation || [55.7558, 37.6173];
 
   const getMarkerColor = (type: string) => {
     const colors: { [key: string]: string } = {
@@ -84,6 +106,20 @@ const JobMap = ({ jobs, onJobClick }: JobMapProps) => {
 
   return (
     <div className="relative w-full h-full">
+      <style>
+        {`
+          @keyframes pulse {
+            0%, 100% {
+              opacity: 1;
+              transform: scale(1);
+            }
+            50% {
+              opacity: 0.8;
+              transform: scale(1.1);
+            }
+          }
+        `}
+      </style>
       <MapContainer
         center={center}
         zoom={13}
@@ -95,6 +131,32 @@ const JobMap = ({ jobs, onJobClick }: JobMapProps) => {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+        
+        {userLocation && (
+          <>
+            <Marker
+              position={userLocation}
+              icon={createUserIcon()}
+            >
+              <Popup>
+                <div className="text-center p-2">
+                  <p className="font-semibold text-blue-600">Вы здесь</p>
+                  <p className="text-xs text-muted-foreground mt-1">Ваше текущее местоположение</p>
+                </div>
+              </Popup>
+            </Marker>
+            <Circle
+              center={userLocation}
+              radius={100}
+              pathOptions={{
+                color: '#3B82F6',
+                fillColor: '#3B82F6',
+                fillOpacity: 0.1,
+                weight: 2,
+              }}
+            />
+          </>
+        )}
         
         {jobs.map((job) => (
           <Marker
